@@ -119,11 +119,16 @@ public class TsuiTaskAllDelete {
     }
 
     private static void deleteTasks(final com.google.api.services.calendar.Calendar pService, final String pCalendarId) throws IOException {
-        final Events events = pService.events().list(pCalendarId).execute();
-        for (final Event item : events.getItems()) {
-            // System.out.println(item);
-            pService.events().delete(pCalendarId, item.getId()).execute();
-        }
+        String pageToken = null;
+        do {
+            final Events events = pService.events().list(pCalendarId).setPageToken(pageToken).execute();
+            final List<Event> items = events.getItems();
+            for (final Event event : items) {
+                System.out.println(event.getSummary());
+                pService.events().delete(pCalendarId, event.getId()).execute();
+            }
+            pageToken = events.getNextPageToken();
+        } while (pageToken != null);
     }
 
     private static Date getDueDate(final Map<String, Object> pMap) {
